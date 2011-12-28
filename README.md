@@ -1,0 +1,1 @@
+secure sessions stored in cookies, for node.js
