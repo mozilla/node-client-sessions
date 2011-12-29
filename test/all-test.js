@@ -43,6 +43,11 @@ suite.addBatch({
     "session object stores and retrieves values properly": function(err, req) {
       req.session.foo = 'bar';
       assert.equal(req.session.foo, 'bar');
+    },
+    "set variables and clear them yields no variables": function(err, req) {
+      req.session.bar = 'baz';
+      req.session.clear();
+      assert.isUndefined(req.session.bar);
     }
   }
 });
