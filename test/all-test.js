@@ -72,12 +72,48 @@ suite.addBatch({
       });
 
       var browser = tobi.createBrowser(app);
-      browser.get("/foo", function(res, $) {});
-      browser.get("/bar", function(res, $) {});
+      browser.get("/foo", function(res, $) {
+        browser.get("/bar", function(res, $) {
+        });
+      });
     },
     "session maintains state": function(err, req) {
       assert.equal(req.session.foo, 'foobar');
-      assert.equal(req.session.bar, [1,2,3]);
+      assert.equal(req.session.bar.length, 3);
+      assert.equal(req.session.bar[0], 1);
+      assert.equal(req.session.bar[1], 2);
+      assert.equal(req.session.bar[2], 3);
+    }
+  }
+});
+
+suite.addBatch({
+  "reading from a session" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = express.createServer();
+      app.use(middleware);
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("foo");
+      });
+
+      app.get("/bar", function(req, res) {
+        res.send(req.session.foo);
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        browser.get("/bar", function(res, $) {
+          // observe the response to the second request
+          self.callback(null, res);
+        });
+      });
+    },
+    "does not set a cookie": function(err, res) {
+      assert.isUndefined(res.headers['set-cookie']);
     }
   }
 });
