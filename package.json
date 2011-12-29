@@ -9,7 +9,8 @@
     "url"  : "https://github.com/benadida/cookie-session"
   },
   "dependencies" : {
-    "vows": "0.5.13"
+    "vows": "0.5.13",
+    "cookies" : "https://github.com/jed/cookies/tarball/588822c"
   },
   "author" : {
     "name"  : "Ben Adida",
