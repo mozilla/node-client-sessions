@@ -15,7 +15,7 @@ var middleware = cookieSessions({
 var suite = vows.describe('all');
 
 suite.addBatch({
-  "request object" : {
+  "a single request object" : {
     topic: function() {
       var self = this;
 
@@ -23,7 +23,6 @@ suite.addBatch({
       var app = express.createServer();
       app.use(middleware);
       app.get("/foo", function(req, res) {
-        console.log("yay");
         self.callback(null, req);
         res.send("hello");
       });
@@ -48,6 +47,37 @@ suite.addBatch({
       req.session.bar = 'baz';
       req.session.clear();
       assert.isUndefined(req.session.bar);
+    }
+  }
+});
+
+suite.addBatch({
+  "across two requests" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = express.createServer();
+      app.use(middleware);
+      app.get("/foo", function(req, res) {
+        req.session.clear();
+        req.session.foo = 'foobar';
+        req.session.bar = [1, 2, 3];
+        res.send("foo");
+      });
+
+      app.get("/bar", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {});
+      browser.get("/bar", function(res, $) {});
+    },
+    "session maintains state": function(err, req) {
+      assert.equal(req.session.foo, 'foobar');
+      assert.equal(req.session.bar, [1,2,3]);
     }
   }
 });
