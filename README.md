@@ -1,11 +1,19 @@
-secure sessions stored in cookies, for node.js
+Secure sessions stored in cookies, for node.js
+Middleware for Connect / Express apps.
 
-The session content is built to be secure and tamper-free.
+Session content is secure and tamper-free.
+
+This does *not* use connect's built-int session middleware, because,
+if it did, things would get nasty in implementation given the conflict
+between the session ID and the session content itself. Also, this library
+uses its own cookie parser so that setup is easier and less error-prone.
+
+I don't recommend using both this middleware and connect's built-in
+session middleware.
+
 
 API
 ===
-
-We don't want this library to depend on making any other calls, e.g. cookieParser.
 
     var cookieSessions = require("cookie-sessions");
     app.use(cookieSessions({

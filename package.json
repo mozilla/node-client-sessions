@@ -10,16 +10,20 @@
   },
   "dependencies" : {
     "vows": "0.5.13",
-    "cookies" : "https://github.com/jed/cookies/tarball/588822c"
+    "cookies" : "https://github.com/jed/cookies/tarball/588822c",
+    "express": "2.5.0",
+    "tobi": "https://github.com/Cowboy-coder/tobi/tarball/master",
+    "zombie": "0.12.9",
+    "node-proxy": "0.5.2"
   },
   "author" : {
     "name"  : "Ben Adida",
     "email" : "ben@adida.net"
   },
   "scripts" : {
-    "test": "./node_modules/vows/bin/vows"
+    "test": "./scripts/run_all_tests.sh"
   },
   "engines": {
-    "node": ">= 0.6.2"
+    "node": ">= 0.6.5"
   }
 }
