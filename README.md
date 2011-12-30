@@ -44,7 +44,7 @@ API
     // will be reset to now, with expiration in duration (ms).
     req.session.reset(['csrf']);
 
-Optionally, if you'd like more explicit control over the cookie parameters, and you know what you're doing with respect to cookie parameters, you can do:
+Optionally, if you'd like more explicit control over the cookie parameters you can do:
 
 
     app.use(cookieSessions({
