@@ -1,7 +1,7 @@
 {
   "name"         : "node-client-sessions",
   "version"      : "0.0.1",
-  "private"      : true,
+  "private"      : false,
   "description"  : "secure sessions stored in cookies",
   "main"         : "index",
   "repository" : {
