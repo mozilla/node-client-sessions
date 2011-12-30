@@ -21,6 +21,12 @@ API
         secret: 'blargadeeblargblarg',
         cookie: {
           path: '/api',
+          // cookie expiration parameters
+          // this gets updated on every cookie call,
+          // so it's not appropriate for saying that the session
+          // expires after 2 weeks, for example, since the cookie
+          // may get updated regularly and push the time back.
+          maxAge: 14 * 24 * 60 * 60 * 1000 // in ms
           httpOnly: true, // defaults to true
           secure: false   // defaults to false
         }
