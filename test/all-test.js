@@ -9,7 +9,10 @@ var vows = require("vows"),
 // set up the session middleware
 var middleware = cookieSessions({
   cookieName: 'session',
-  secret: 'yo'
+  secret: 'yo',
+  cookie: {
+    maxAge: 5000
+  }
 });
 
 var suite = vows.describe('all');
@@ -47,6 +50,36 @@ suite.addBatch({
       req.session.bar = 'baz';
       req.session.clear();
       assert.isUndefined(req.session.bar);
+    }
+  }
+});
+
+suite.addBatch({
+  "a single request object" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = express.createServer();
+      app.use(middleware);
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "includes a set-cookie header": function(err, res) {
+      assert.isArray(res.headers['set-cookie']);
+    },
+    "with an expires attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /expires/);      
+    },
+    "with a path attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /path/);
     }
   }
 });
