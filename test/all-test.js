@@ -207,4 +207,71 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "short duration" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        secret: 'yo',
+        duration: 500 // 0.5 seconds
+      }));
+      
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("foo");
+      });
+
+      return app;
+    },
+    "querying within the duration time": {
+      topic: function(app) {
+        var self = this;
+        
+        app.get("/bar", function(req, res) {
+          self.callback(null, req);
+          res.send("bar");
+        });
+        
+        var browser = tobi.createBrowser(app);
+        browser.get("/foo", function(res, $) {
+          setTimeout(function () {
+            browser.get("/bar", function(res, $) {
+            });
+          }, 200);
+        });
+      },
+      "session still has state": function(err, req) {
+        assert.equal(req.session.foo, 'foobar');
+      }
+    },
+    "querying outside the duration time": {
+      topic: function(app) {
+        var self = this;
+        
+        app.get("/bar2", function(req, res) {
+          self.callback(null, req);
+          res.send("bar2");
+        });
+        
+        var browser = tobi.createBrowser(app);
+        browser.get("/foo", function(res, $) {
+          setTimeout(function () {
+            browser.get("/bar2", function(res, $) {
+            });
+          }, 1000);
+        });
+      },
+      "session no longer has state": function(err, req) {
+        assert.isUndefined(req.session.foo);
+      }
+    }
+    
+
+  }
+});
+
 suite.export(module);

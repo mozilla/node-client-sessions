@@ -17,10 +17,12 @@ API
 
     var cookieSessions = require("cookie-sessions");
     app.use(cookieSessions({
-        cookieName: 'session',
-        secret: 'blargadeeblargblarg',
-        // true session duration: it will expire after
-        // duration (in ms) from
+        cookieName: 'session_state',    // defaults to session_state
+        secret: 'blargadeeblargblarg', // MUST be set
+        // true session duration:
+        // will expire after duration (ms)
+        // from last session.reset() or
+        // initial cookieing.
         duration: 24 * 60 * 60 * 1000, // defaults to 1 day
         cookie: {
           path: '/api',
