@@ -88,6 +88,46 @@ suite.addBatch({
 });
 
 suite.addBatch({
+  "across three requests" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = express.createServer();
+      app.use(middleware);
+      app.get("/foo", function(req, res) {
+        req.session.clear();
+        req.session.foo = 'foobar';
+        req.session.bar = 'foobar2';
+        res.send("foo");
+      });
+
+      app.get("/bar", function(req, res) {
+        delete req.session['bar'];
+        res.send("bar");
+      });
+
+      app.get("/baz", function(req, res) {
+        self.callback(null, req);
+        res.send("baz");
+      });
+      
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        browser.get("/bar", function(res, $) {
+          browser.get("/baz", function(res, $) {
+          });
+        });
+      });
+    },
+    "session maintains state": function(err, req) {
+      assert.equal(req.session.foo, 'foobar');
+      assert.isUndefined(req.session.bar);
+    }
+  }
+});
+
+suite.addBatch({
   "reading from a session" : {
     topic: function() {
       var self = this;
