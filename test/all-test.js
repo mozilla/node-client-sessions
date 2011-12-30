@@ -86,6 +86,9 @@ suite.addBatch({
     },
     "with a path attribute": function(err, res) {
       assert.match(res.headers['set-cookie'][0], /path/);
+    },
+    "with an httpOnly attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /httponly/);
     }
   }
 });

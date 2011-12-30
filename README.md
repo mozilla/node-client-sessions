@@ -22,7 +22,7 @@ API
         cookie: {
           path: '/api',
           httpOnly: true, // defaults to true
-          secure: true    // defaults to true
+          secure: false   // defaults to false
         }
       }));
 
