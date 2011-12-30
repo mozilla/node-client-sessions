@@ -221,6 +221,7 @@ suite.addBatch({
       }));
       
       app.get("/foo", function(req, res) {
+        req.session.reset();
         req.session.foo = 'foobar';
         res.send("foo");
       });
@@ -251,7 +252,7 @@ suite.addBatch({
     "querying outside the duration time": {
       topic: function(app) {
         var self = this;
-        
+
         app.get("/bar2", function(req, res) {
           self.callback(null, req);
           res.send("bar2");
@@ -262,11 +263,44 @@ suite.addBatch({
           setTimeout(function () {
             browser.get("/bar2", function(res, $) {
             });
-          }, 1000);
+          }, 800);
         });
       },
       "session no longer has state": function(err, req) {
         assert.isUndefined(req.session.foo);
+      }
+    },
+    "querying twice, each at 3/4 duration time": {
+      topic: function(app) {
+        var self = this;
+        
+        app.get("/bar3", function(req, res) {
+          req.session.baz = Math.random();
+          res.send("bar3");
+        });
+
+        app.get("/bar4", function(req, res) {
+          self.callback(null, req);
+          res.send("bar4");
+        });
+        
+        var browser = tobi.createBrowser(app);
+        // first query resets the session to full duration
+        browser.get("/foo", function(res, $) {
+          setTimeout(function () {
+            // this query should NOT reset the session
+            browser.get("/bar3", function(res, $) {
+              setTimeout(function () {
+                // so the session should be dead by now
+                browser.get("/bar4", function(res, $) {
+                });
+              }, 300);
+            });
+          }, 300);
+        });
+      },
+      "session no longer has state": function(err, req) {
+        assert.isUndefined(req.session.baz);
       }
     }
     
