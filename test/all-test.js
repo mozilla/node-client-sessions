@@ -36,27 +36,34 @@ suite.addBatch({
     "includes a session object": function(err, req) {
       assert.isObject(req.session);
     },
-    "session object has clear method": function(err, req) {
-      assert.isFunction(req.session.clear);
-    },
-    "session object has setExpires method": function(err, req) {
-      assert.isFunction(req.session.setExpires);
-    },
     "session object stores and retrieves values properly": function(err, req) {
       req.session.foo = 'bar';
       assert.equal(req.session.foo, 'bar');
+    },    
+    "session object has reset function": function(err, req) {
+      assert.isFunction(req.session.reset);
     },
     "set variables and clear them yields no variables": function(err, req) {
       req.session.bar = 'baz';
-      req.session.clear();
+      req.session.reset();
       assert.isUndefined(req.session.bar);
     },
-    "set variables does the rigth thing for Object.keys": function(err, req) {
-      req.session.clear();
+    "set variables does the right thing for Object.keys": function(err, req) {
+      req.session.reset();
       req.session.foo = 'foobar';
       assert.equal(Object.keys(req.session).length, 1);
       assert.equal(Object.keys(req.session)[0], 'foo');
-    }
+    },
+    "reset preserves variables when asked": function(err, req) {
+      req.session.reset();
+      req.session.foo = 'foobar';
+      req.session.bar = 'foobar2';
+
+      req.session.reset(['foo']);
+      
+      assert.isUndefined(req.session.bar);
+      assert.equal(req.session.foo, 'foobar');
+    }    
   }
 });
 
@@ -102,7 +109,7 @@ suite.addBatch({
       var app = express.createServer();
       app.use(middleware);
       app.get("/foo", function(req, res) {
-        req.session.clear();
+        req.session.reset();
         req.session.foo = 'foobar';
         req.session.bar = [1, 2, 3];
         res.send("foo");
@@ -138,7 +145,7 @@ suite.addBatch({
       var app = express.createServer();
       app.use(middleware);
       app.get("/foo", function(req, res) {
-        req.session.clear();
+        req.session.reset();
         req.session.foo = 'foobar';
         req.session.bar = 'foobar2';
         res.send("foo");

@@ -19,6 +19,9 @@ API
     app.use(cookieSessions({
         cookieName: 'session',
         secret: 'blargadeeblargblarg',
+        // true session duration: it will expire after
+        // duration (in ms) from
+        duration: 24 * 60 * 60 * 1000, // defaults to 1 day
         cookie: {
           path: '/api',
           // cookie expiration parameters
@@ -35,9 +38,9 @@ API
     // later, in a request
     req.session.foo = 'bar';
     req.session.baz = 'baz2';
-
     // results in a Set-Cookie header
 
+    console.log(req.session.baz)
     // no updates to session results in no Set-Cookie header
 
     // and then
@@ -45,10 +48,7 @@ API
       // do something
     }
 
-    // have the session expire 24 hours from now
-    // this will not refresh automatically with activity
-    // you have to call req.session.setExpires again
-    req.session.setExpires(24 * 60 * 60 * 1000);
-
-    // clear the session
-    req.session.clear();
+    // reset the session, preserving some variables
+    // if they exist. This means the session's creation time
+    // will be reset to now, with expiration in duration (ms).
+    req.session.reset(['csrf']);
