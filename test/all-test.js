@@ -50,6 +50,12 @@ suite.addBatch({
       req.session.bar = 'baz';
       req.session.clear();
       assert.isUndefined(req.session.bar);
+    },
+    "set variables does the rigth thing for Object.keys": function(err, req) {
+      req.session.clear();
+      req.session.foo = 'foobar';
+      assert.equal(Object.keys(req.session).length, 1);
+      assert.equal(Object.keys(req.session)[0], 'foo');
     }
   }
 });
