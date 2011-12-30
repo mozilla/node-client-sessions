@@ -24,17 +24,6 @@ API
         // from last session.reset() or
         // initial cookieing.
         duration: 24 * 60 * 60 * 1000, // defaults to 1 day
-        cookie: {
-          path: '/api',
-          // cookie expiration parameters
-          // this gets updated on every cookie call,
-          // so it's not appropriate for saying that the session
-          // expires after 2 weeks, for example, since the cookie
-          // may get updated regularly and push the time back.
-          maxAge: 14 * 24 * 60 * 60 * 1000 // in ms
-          httpOnly: true, // defaults to true
-          secure: false   // defaults to false
-        }
       }));
 
     // later, in a request
@@ -54,3 +43,27 @@ API
     // if they exist. This means the session's creation time
     // will be reset to now, with expiration in duration (ms).
     req.session.reset(['csrf']);
+
+Optionally, if you'd like more explicit control over the cookie parameters, and you know what you're doing with respect to cookie parameters, you can do:
+
+
+    app.use(cookieSessions({
+        cookieName: 'session_state',    // defaults to session_state
+        secret: 'blargadeeblargblarg', // MUST be set
+        // true session duration:
+        // will expire after duration (ms)
+        // from last session.reset() or
+        // initial cookieing.
+        duration: 24 * 60 * 60 * 1000, // defaults to 1 day
+        cookie: {
+          path: '/api',
+          // cookie expiration parameters
+          // this gets updated on every cookie call,
+          // so it's not appropriate for saying that the session
+          // expires after 2 weeks, for example, since the cookie
+          // may get updated regularly and push the time back.
+          maxAge: 14 * 24 * 60 * 60 * 1000 // in ms
+          httpOnly: true, // defaults to true
+          secure: false   // defaults to false
+        }
+      }));
