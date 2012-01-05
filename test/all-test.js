@@ -1,7 +1,7 @@
 
 var vows = require("vows"),
     assert = require("assert"),
-    cookieSessions = require("../index"),
+    cookieSessions = require("../lib/client-sessions"),
     express = require("express"),
     tobi = require("tobi"),
     Browser = require("zombie");
@@ -381,5 +381,76 @@ suite.addBatch({
     }
   }
 });
+
+function create_app_with_secure(firstMiddleware) {
+  // set up the session middleware
+  var middleware = cookieSessions({
+    cookieName: 'session',
+    secret: 'yo',
+    cookie: {
+      maxAge: 5000,
+      secure: true
+    }
+  });
+  
+  var app = express.createServer();
+  if (firstMiddleware)
+    app.use(firstMiddleware);
+  
+  app.use(middleware);
+  
+  return app;
+}
+
+suite.addBatch({
+  "across two requests, without proxySecure, secure cookies" : {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_secure();
+      
+      app.get("/foo", function(req, res) {
+        res.send("foo");
+      });
+          
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+
+    },
+    "cannot be set": function(err, res) {
+      assert.equal(res.statusCode, 500);
+    }
+  }
+});
+
+suite.addBatch({
+  "across two requests, with proxySecure, secure cookies" : {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_secure(function(req, res, next) {
+        // say it is proxySecure
+        req.connection.proxySecure = true;
+        next();
+      });
+
+      app.get("/foo", function(req, res) {
+        res.send("foo");
+      });
+          
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+
+    },
+    "can be set": function(err, res) {
+      assert.equal(res.statusCode, 200);
+    }
+  }
+});
+
 
 suite.export(module);
