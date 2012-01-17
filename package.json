@@ -9,12 +9,14 @@
     "url"  : "https://github.com/benadida/node-client-sessions"
   },
   "dependencies" : {
-    "vows": "0.5.13",
     "cookies" : "https://github.com/benadida/cookies/tarball/d2f0f0b3",
+    "node-proxy": "0.5.2"
+  },
+  "devDependencies": {
+    "vows": "0.5.13",
     "express": "2.5.0",
     "tobi": "https://github.com/Cowboy-coder/tobi/tarball/fd733a3",
-    "zombie": "0.12.9",
-    "node-proxy": "0.5.2"
+    "zombie": "0.12.9"
   },
   "author" : {
     "name"  : "Ben Adida",
