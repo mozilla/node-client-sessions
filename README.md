@@ -15,8 +15,8 @@ session middleware.
 API
 ===
 
-    var cookieSessions = require("cookie-sessions");
-    app.use(cookieSessions({
+    var clientSessions = require("client-sessions");
+    app.use(clientSessions({
         cookieName: 'session_state',    // defaults to session_state
         secret: 'blargadeeblargblarg', // MUST be set
         // true session duration:
@@ -47,7 +47,7 @@ API
 Optionally, if you'd like more explicit control over the cookie parameters you can do:
 
 
-    app.use(cookieSessions({
+    app.use(clientSessions({
         cookieName: 'session_state',    // defaults to session_state
         secret: 'blargadeeblargblarg', // MUST be set
         // true session duration:
