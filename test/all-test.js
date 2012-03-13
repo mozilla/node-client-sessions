@@ -422,14 +422,12 @@ suite.addBatch({
       browser.get("/create", function(res, $) {
         browser.get("/change", function(res, $) {
           setTimeout(function () {
-            browser.get("/complete", function(res, $) {
-            });
-          }, 800);
+            browser.get("/complete", function(res, $) { });
+          }, 700);
         });
       });
     },
     "session no longer has state": function(err, req) {
-      console.log(req.session);
       assert.isUndefined(req.session.foo);
     }
   }
@@ -471,7 +469,6 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         self.callback(null, res);
       });
-
     },
     "cannot be set": function(err, res) {
       assert.equal(res.statusCode, 500);
