@@ -397,6 +397,11 @@ function create_app_with_duration_modification() {
     res.send("created");
   });
 
+  app.get("/augment", function(req, res) {
+    req.session.bar = "bar";
+    res.send("augmented");
+  });
+
   // invoking this will change the session duration to 500ms
   app.get("/change", function(req, res) {
     req.session.setDuration(500);
@@ -431,8 +436,122 @@ suite.addBatch({
       assert.isUndefined(req.session.foo);
     }
   }
+}); 
+
+suite.addBatch({
+  "changing duration": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration_modification();
+      app.get("/complete", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/create", function(res, $) {
+        browser.get("/change", function(res, $) {
+          browser.get("/complete", function(res, $) { });
+        });
+      });
+    },
+    "doesn't affect session variables": function(err, req) {
+      assert.equal(req.session.foo, "foo");
+    }
+  }
 });
 
+suite.addBatch({
+  "after changing duration then setting a new session variable": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration_modification();
+      app.get("/set_then_duration", function(req, res) {
+        req.session.baz = "baz";
+        req.session.setDuration(500);
+        res.send("did it");
+      });
+
+
+      app.get("/complete", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/create", function(res, $) {
+        browser.get("/set_then_duration", function(res, $) {
+          browser.get("/complete", function(res, $) { });
+        });
+      });
+    },
+    "variable is visible": function(err, req) {
+      assert.equal(req.session.foo, "foo");
+      assert.equal(req.session.baz, "baz");
+    }
+  }
+});
+
+suite.addBatch({
+  "after setting a new session variable then changing duration": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration_modification();
+      app.get("/set_then_duration", function(req, res) {
+        req.session.setDuration(500);
+        req.session.baz = "baz";
+        res.send("did it");
+      });
+
+
+      app.get("/complete", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/create", function(res, $) {
+        browser.get("/set_then_duration", function(res, $) {
+          browser.get("/complete", function(res, $) { });
+        });
+      });
+    },
+    "variable is visible": function(err, req) {
+      assert.equal(req.session.foo, "foo");
+      assert.equal(req.session.baz, "baz");
+    }
+  }
+});
+
+suite.addBatch({
+  "setting new variables then invoking setDuration": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration_modification();
+      app.get("/complete", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/create", function(res, $) {
+        browser.get("/change", function(res, $) {
+          browser.get("/augment", function(res, $) {
+            browser.get("/complete", function(res, $) { });
+          });
+        });
+      });
+    },
+    "both variables are visible": function(err, req) {
+      assert.equal(req.session.foo, "foo");
+      assert.equal(req.session.bar, "bar");
+    }
+  }
+});
 
 function create_app_with_secure(firstMiddleware) {
   // set up the session middleware
