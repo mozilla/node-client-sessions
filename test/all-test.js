@@ -1,3 +1,7 @@
+// a NODE_ENV of test will supress console output to stderr which
+// connect likes to do when next() is called with a non-falsey error
+// message.  We test such codepaths here.
+process.env['NODE_ENV'] = 'test';
 
 var vows = require("vows"),
     assert = require("assert"),
