@@ -1,3 +1,7 @@
+// a NODE_ENV of test will supress console output to stderr which
+// connect likes to do when next() is called with a non-falsey error
+// message.  We test such codepaths here.
+process.env['NODE_ENV'] = 'test';
 
 var vows = require("vows"),
     assert = require("assert"),
@@ -436,7 +440,10 @@ suite.addBatch({
       assert.isUndefined(req.session.foo);
     }
   }
-}); 
+});
+
+var initialCookie;
+var updatedCookie;
 
 suite.addBatch({
   "changing duration": {
@@ -451,13 +458,24 @@ suite.addBatch({
 
       var browser = tobi.createBrowser(app);
       browser.get("/create", function(res, $) {
+        initialCookie = browser.cookieJar.cookies[0].value;
         browser.get("/change", function(res, $) {
+          updatedCookie = browser.cookieJar.cookies[0].value;
           browser.get("/complete", function(res, $) { });
         });
       });
     },
     "doesn't affect session variables": function(err, req) {
       assert.equal(req.session.foo, "foo");
+    },
+    "does update creation time": function(err, req) {
+      assert.notEqual(initialCookie.split('.')[2],
+                      updatedCookie.split('.')[2],
+                      "after duration update, creation should be updated");
+    },
+    "does update duration": function(err, req) {
+      assert.strictEqual(parseInt(initialCookie.split('.')[3], 10), 5000);
+      assert.strictEqual(parseInt(updatedCookie.split('.')[3], 10), 500);
     }
   }
 });
