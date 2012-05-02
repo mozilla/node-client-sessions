@@ -1,6 +1,6 @@
 {
   "name"         : "client-sessions",
-  "version"      : "0.0.6",
+  "version"      : "0.0.7",
   "private"      : false,
   "description"  : "secure sessions stored in cookies",
   "main"         : "lib/client-sessions",
