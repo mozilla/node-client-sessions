@@ -10,7 +10,7 @@
   },
   "dependencies" : {
     "cookies" : "https://github.com/benadida/cookies/tarball/d2f0f0b3",
-    "node-proxy": "0.5.2"
+    "node-proxy": "0.6.0"
   },
   "devDependencies": {
     "vows": "0.5.13",
