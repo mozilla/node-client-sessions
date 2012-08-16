@@ -225,16 +225,18 @@ suite.addBatch({
       var app = create_app();
 
       app.get("/foo", function(req, res) {
+        // this should send undefined, not null
         res.send(req.session.foo);
       });
 
       var browser = tobi.createBrowser(app);
       browser.get("/foo", function(res, $) {
-        self.callback(null, res);
+        self.callback(null, res, $);
       });
     },
-    "does not set a cookie": function(err, res) {
+    "does not set a cookie": function(err, res, body) {
       assert.isUndefined(res.headers['set-cookie']);
+      assert.isUndefined(body);
     }
   }
 });
