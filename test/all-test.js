@@ -189,7 +189,7 @@ suite.addBatch({
 });
 
 suite.addBatch({
-  "reading from a session" : {
+  "reading from an existing session" : {
     topic: function() {
       var self = this;
 
@@ -211,6 +211,26 @@ suite.addBatch({
           // observe the response to the second request
           self.callback(null, res);
         });
+      });
+    },
+    "does not set a cookie": function(err, res) {
+      assert.isUndefined(res.headers['set-cookie']);
+    }
+  },
+  "reading from a non-existing session" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = create_app();
+
+      app.get("/foo", function(req, res) {
+        res.send(req.session.foo);
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
       });
     },
     "does not set a cookie": function(err, res) {
