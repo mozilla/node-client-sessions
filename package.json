@@ -16,14 +16,14 @@
     "vows": "0.5.13",
     "express": "2.5.0",
     "tobi": "https://github.com/Cowboy-coder/tobi/tarball/fd733a3",
-    "zombie": "0.12.9"
+    "zombie": "1.3.1"
   },
   "author" : {
     "name"  : "Ben Adida",
     "email" : "ben@adida.net"
   },
   "scripts" : {
-    "test": "./scripts/run_all_tests.sh"
+    "test": "vows --spec"
   },
   "engines": {
     "node": ">= 0.6.5"
