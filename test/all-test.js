@@ -663,4 +663,34 @@ suite.addBatch({
 });
 
 
+suite.addBatch({
+  "cookie" : {
+    topic: function() {
+      var self = this;
+
+      var app = create_app();
+      app.get("/foo", function(req, res) {
+        self.callback(null, req);
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {});
+    },
+    "box" : function(err, req){      
+      var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {fooooo:'baaaaaaarrrrrr'}); 
+console.log(result);
+      assert.equal('box', 'box');
+    },
+    "unbox" : function(err, req){
+      req.session.foo = 'bar';
+      var m = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {fooooo:'baaaaaaarrrrrr'}); 
+      var result = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, m);
+console.log(result);
+
+      assert.equal(result, 'unbox');
+    }
+  }
+});
+
 suite.export(module);
