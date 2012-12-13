@@ -664,7 +664,7 @@ suite.addBatch({
 
 
 suite.addBatch({
-  "cookie" : {
+  "public encode and decode util methods" : {
     topic: function() {
       var self = this;
 
@@ -677,18 +677,35 @@ suite.addBatch({
       var browser = tobi.createBrowser(app);
       browser.get("/foo", function(res, $) {});
     },
-    "box" : function(err, req){      
-      var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {fooooo:'baaaaaaarrrrrr'}); 
-console.log(result);
-      assert.equal('box', 'box');
-    },
-    "unbox" : function(err, req){
-      req.session.foo = 'bar';
-      var m = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {fooooo:'baaaaaaarrrrrr'}); 
-      var result = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, m);
-console.log(result);
 
-      assert.equal(result, 'unbox');
+    "encode " : function(err, req){
+      var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var result_arr = result.split(".");
+      assert.equal(result_arr.length, 5);
+    },
+    "encode and decode - is object" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.isObject(decoded);
+    },
+    "encode and decode - has all values" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar', bar:'foo'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.content.foo, 'bar');
+      assert.equal(decoded.content.bar, 'foo');
+      assert.isNumber(decoded.duration);
+      assert.isNumber(decoded.createdAt);
+    },
+    "encode and decode - override duration and createdAt" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar', bar:'foo'}, 5000, 1355408039221);
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.duration, 5000);
+      assert.equal(decoded.createdAt, 1355408039221);
+    },
+    "encode and decode - default duration" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.duration, 86400000);
     }
   }
 });
