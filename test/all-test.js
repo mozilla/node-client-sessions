@@ -663,4 +663,51 @@ suite.addBatch({
 });
 
 
+suite.addBatch({
+  "public encode and decode util methods" : {
+    topic: function() {
+      var self = this;
+
+      var app = create_app();
+      app.get("/foo", function(req, res) {
+        self.callback(null, req);
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {});
+    },
+
+    "encode " : function(err, req){
+      var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var result_arr = result.split(".");
+      assert.equal(result_arr.length, 5);
+    },
+    "encode and decode - is object" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.isObject(decoded);
+    },
+    "encode and decode - has all values" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar', bar:'foo'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.content.foo, 'bar');
+      assert.equal(decoded.content.bar, 'foo');
+      assert.isNumber(decoded.duration);
+      assert.isNumber(decoded.createdAt);
+    },
+    "encode and decode - override duration and createdAt" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar', bar:'foo'}, 5000, 1355408039221);
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.duration, 5000);
+      assert.equal(decoded.createdAt, 1355408039221);
+    },
+    "encode and decode - default duration" : function(err, req){
+      var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
+      var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
+      assert.equal(decoded.duration, 86400000);
+    }
+  }
+});
+
 suite.export(module);
