@@ -26,6 +26,6 @@
     "test": "vows --spec"
   },
   "engines": {
-    "node": ">= 0.6.5"
+    "node": ">= 0.8.0"
   }
 }
