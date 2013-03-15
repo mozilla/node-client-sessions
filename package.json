@@ -15,7 +15,7 @@
   "devDependencies": {
     "vows": "0.5.13",
     "express": "2.5.0",
-    "tobi": "https://github.com/Cowboy-coder/tobi/tarball/fd733a3",
+    "tobi": "0.3.2",
     "zombie": "1.3.1"
   },
   "author" : {
