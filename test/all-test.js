@@ -149,6 +149,38 @@ suite.addBatch({
 });
 
 suite.addBatch({
+  "across two requests" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = create_app();
+
+      app.get("/foo", function(req, res) {
+        req.session.reset();
+        req.session.foo = 'foobar';
+        res.send("foo");
+      });
+
+      app.get("/bar", function(req, res) {
+        self.callback(null, req);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        browser.get("/bar", function(res, $) {
+        });
+      });
+    },
+    "resetting a session with an existing cookie value yields no variables": function(err, req) {
+      req.session.reset();
+      assert.isUndefined(req.session.foo);
+    }
+  }
+});
+
+suite.addBatch({
   "across three requests" : {
     topic: function() {
       var self = this;
