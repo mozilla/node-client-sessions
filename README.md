@@ -1,4 +1,5 @@
-[![build status](https://secure.travis-ci.org/benadida/node-client-sessions.png)](http://travis-ci.org/benadida/node-client-sessions)
+[![build status](https://secure.travis-ci.org/mozilla/node-client-sessions.png)](http://travis-ci.org/mozilla/node-client-sessions)
+
 Secure sessions stored in cookies, for node.js
 Middleware for Connect / Express apps.
 
