@@ -6,7 +6,7 @@
   "main"         : "lib/client-sessions",
   "repository" : {
     "type" : "git",
-    "url"  : "https://github.com/benadida/node-client-sessions"
+    "url"  : "https://github.com/mozilla/node-client-sessions"
   },
   "dependencies" : {
     "cookies" : "0.2.1",
