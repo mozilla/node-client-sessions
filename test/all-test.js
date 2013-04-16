@@ -25,8 +25,7 @@ function create_app() {
 
   // set up a second cookie storage middleware
   var secureStoreMiddleware = cookieSessions({
-    cookieName: 'session',
-    requestKey: 'securestore',
+    cookieName: 'securestore',
     secret: 'yo',
     cookie: {
       maxAge: 5000
