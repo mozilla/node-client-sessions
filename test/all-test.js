@@ -23,6 +23,17 @@ function create_app() {
   var app = express.createServer();
   app.use(middleware);
 
+  // set up a second cookie storage middleware
+  var secureStoreMiddleware = cookieSessions({
+    cookieName: 'securestore',
+    secret: 'yo',
+    cookie: {
+      maxAge: 5000
+    }
+  });
+
+  app.use(secureStoreMiddleware);
+
   return app;
 }
 
@@ -738,6 +749,32 @@ suite.addBatch({
       var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
       var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
       assert.equal(decoded.duration, 86400000);
+    }
+  }
+});
+
+suite.addBatch({
+  "two middlewares": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app();
+      app.get("/foo", function(req, res) {
+        self.callback(null, req);
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {});
+    },
+    "We can write to both stores": function(err, req) {
+      req.session.foo = 'bar';
+      req.securestore.foo = 'buzz';
+      req.securestore.widget = 4;
+
+      assert.equal(req.session.foo, 'bar');
+      assert.equal(req.securestore.foo, 'buzz');
+      assert.equal(req.securestore.widget, 4);
     }
   }
 });

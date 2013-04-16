@@ -19,7 +19,7 @@ API
 
     var clientSessions = require("client-sessions");
     app.use(clientSessions({
-        cookieName: 'session_state',    // defaults to session_state
+        cookieName: 'session',    // defaults to session_state
         secret: 'blargadeeblargblarg', // MUST be set
         // true session duration:
         // will expire after duration (ms)
@@ -27,6 +27,8 @@ API
         // initial cookieing.
         duration: 24 * 60 * 60 * 1000, // defaults to 1 day
       }));
+
+    **Note:** `cookieName` determines the property name where the session will be splaced on the `req` object.
 
     // later, in a request
     req.session.foo = 'bar';
@@ -50,7 +52,7 @@ Optionally, if you'd like more explicit control over the cookie parameters you c
 
 
     app.use(clientSessions({
-        cookieName: 'session_state',    // defaults to session_state
+        cookieName: 'session',    // defaults to session_state
         secret: 'blargadeeblargblarg', // MUST be set
         // true session duration:
         // will expire after duration (ms)
@@ -69,3 +71,19 @@ Optionally, if you'd like more explicit control over the cookie parameters you c
           secure: false   // defaults to false
         }
       }));
+
+In addition to a secure replacement for the session object, you may use client-sessions multiple times to have encrypted/signed cookies outside of your "sessions".
+
+Example:
+
+    app.use(clientSessions({
+        cookieName: 'cart',    // defaults to session_state
+        secret: 'anothersekrit', // MUST be set
+        duration: 4 * 30 * 24 * 60 * 60 * 1000 // 4 months
+      }));
+
+and then from a request
+
+    req.cart.total = 33;
+
+This way sessions last for a day, but a secure shopping cart is stored on user's browsers for up to 4 months, before they commit to buying an item.
