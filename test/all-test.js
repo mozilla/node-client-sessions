@@ -1,7 +1,7 @@
 // a NODE_ENV of test will supress console output to stderr which
 // connect likes to do when next() is called with a non-falsey error
 // message.  We test such codepaths here.
-process.env['NODE_ENV'] = 'test';
+process.env.NODE_ENV = 'test';
 
 var vows = require("vows"),
     assert = require("assert"),
@@ -12,6 +12,7 @@ var vows = require("vows"),
 
 function create_app() {
   // set up the session middleware
+  // XXX: same secret is important for a test
   var middleware = cookieSessions({
     cookieName: 'session',
     secret: 'yo',
@@ -207,7 +208,7 @@ suite.addBatch({
       });
 
       app.get("/bar", function(req, res) {
-        delete req.session['bar'];
+        delete req.session.bar;
         res.send("bar");
       });
 
@@ -765,7 +766,7 @@ suite.addBatch({
       });
 
       var browser = tobi.createBrowser(app);
-      browser.get("/foo", function(res, $) {});
+      browser.get("/foo", function(res, $){});
     },
     "We can write to both stores": function(err, req) {
       req.session.foo = 'bar';
@@ -775,6 +776,57 @@ suite.addBatch({
       assert.equal(req.session.foo, 'bar');
       assert.equal(req.securestore.foo, 'buzz');
       assert.equal(req.securestore.widget, 4);
+    }
+  }
+});
+
+
+suite.addBatch({
+  "swapping two cookies": {
+    topic: function() {
+      var self = this;
+      var app = create_app(); //important that they use the same secret
+      app.get('/foo', function(req, res) {
+        req.session.foo = 'bar';
+        req.securestore.foo = 'buzz';
+        req.securestore.widget = 4;
+        res.send('hello');
+      });
+      app.get('/bar', function(req, res) {
+        self.callback(null, req);
+        res.send('bye');
+      });
+
+      tobi.createBrowser(app).get('/foo', function(res, $){
+        var cookies = res.headers['set-cookie'];
+        var firstCookie = cookies[0];
+        var secondCookie = cookies[1];
+
+        function getCookieName(cookieHeader) {
+          return cookieHeader.substring(0, cookieHeader.indexOf('='));
+        }
+
+        function getCookieValue(cookieHeader) {
+          return cookieHeader.substring(cookieHeader.indexOf('='), cookieHeader.indexOf(';'));
+        }
+
+        var firstHijack = getCookieName(firstCookie) + getCookieValue(secondCookie);
+        var secondHijack = getCookieName(secondCookie) + getCookieValue(firstCookie);
+
+        // new browser, because tobi overwrites the passed cookies
+        // header with its cookie jar, so we need a new jar
+        tobi.createBrowser(app).get('/bar', {
+            headers: { 'Cookie': firstHijack + '; ' + secondHijack } 
+        }, function(res, $){});
+
+      });
+    },
+    "doesn't keep using cookie": function(err, req) {
+      // session.foo should not be what securestore.foo was, or else
+      // we swapped cookies!
+      assert.notEqual(req.session.foo, 'buzz');
+      assert.notEqual(req.session.widget, 4);
+      assert.notEqual(req.securestore.foo, 'bar');
     }
   }
 });
