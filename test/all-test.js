@@ -780,6 +780,33 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "specifying requestKey different than cookieName": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'ooga_booga_momma',
+        requestKey: 'ses',
+        secret: 'yo'
+      }));
+
+      app.get('/foo', function(req, res) {
+        self.callback(null, req)
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $){});
+    },
+    "session is defined as req[requestKey]": function(err, req) {
+      assert.isObject(req.ses);
+      assert.strictEqual(Object.keys(req.ses).length, 0);
+      assert.isUndefined(req.session);
+      assert.isUndefined(req.ooga_booga_momma);
+    }
+  }
+});
 
 suite.addBatch({
   "swapping two cookies": {
