@@ -750,6 +750,15 @@ suite.addBatch({
       var encoded = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
       var decoded = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encoded);
       assert.equal(decoded.duration, 86400000);
+    },
+    "encode and decode - tampered HMAC" : function(err, req){
+      var encodedReal = 'LVB3G2lnPF75RzsT9mz7jQ.RT1Lcq0dOJ_DMRHyWJ4NZPjBXr2WzkFcUC4NO78gbCQ.1371704898483.5000.ILEusgnajT1sqCWLuzaUt-HFn2KPjYNd38DhI7aRCb9';
+      var encodedFake = encodedReal.substring(0, encodedReal.length - 1) + 'A';
+
+      var decodedReal = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encodedReal);
+      assert.isObject(decodedReal);
+      var decodedFake = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encodedFake);
+      assert.isUndefined(decodedFake);
     }
   }
 });
