@@ -416,6 +416,43 @@ suite.addBatch({
 });
 
 suite.addBatch({
+  "querying twice, each at 1/4 duration time": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration();
+      app.get("/bar", function(req, res) {
+        req.session.baz = Math.random();
+        res.send("bar");
+      });
+
+      app.get("/bar2", function(req, res) {
+        self.callback(null, req);
+        res.send("bar2");
+      });
+
+      var browser = tobi.createBrowser(app);
+      // first query resets the session to full duration
+      browser.get("/foo", function(res, $) {
+        setTimeout(function () {
+          // this query should NOT reset the session
+          browser.get("/bar", function(res, $) {
+            setTimeout(function () {
+              // so the session should still be valid
+              browser.get("/bar2", function(res, $) {
+              });
+            }, 200);
+          });
+        }, 200);
+      });
+    },
+    "session still has state": function(err, req) {
+      assert.isDefined(req.session.baz);
+    }
+  }
+});
+
+suite.addBatch({
   "querying twice, each at 3/4 duration time": {
     topic: function() {
       var self = this;
