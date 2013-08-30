@@ -904,4 +904,38 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "missing cookie maxAge": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 50000,
+        secret: 'yo'
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "still has an expires attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
+    },
+    "which roughly matches the session duration": function(err, res) {
+      var expiryValue = res.headers['set-cookie'][0].replace(/^.*expires=([^;]+);.*$/, "$1");
+      var expiryDate = new Date(expiryValue);
+      var cookieDuration = expiryDate.getTime() - Date.now();
+      assert(50000 - cookieDuration < 1500, "expiry is pretty far from the specified duration");
+    }
+  }
+});
+
 suite.export(module);
