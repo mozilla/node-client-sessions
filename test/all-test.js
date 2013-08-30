@@ -416,7 +416,44 @@ suite.addBatch({
 });
 
 suite.addBatch({
-  "querying twice, each at 3/4 duration time": {
+  "querying twice, each at 2/5 duration time": {
+    topic: function() {
+      var self = this;
+
+      var app = create_app_with_duration();
+      app.get("/bar", function(req, res) {
+        req.session.baz = Math.random();
+        res.send("bar");
+      });
+
+      app.get("/bar2", function(req, res) {
+        self.callback(null, req);
+        res.send("bar2");
+      });
+
+      var browser = tobi.createBrowser(app);
+      // first query resets the session to full duration
+      browser.get("/foo", function(res, $) {
+        setTimeout(function () {
+          // this query should NOT reset the session
+          browser.get("/bar", function(res, $) {
+            setTimeout(function () {
+              // so the session should still be valid
+              browser.get("/bar2", function(res, $) {
+              });
+            }, 200);
+          });
+        }, 200);
+      });
+    },
+    "session still has state": function(err, req) {
+      assert.isDefined(req.session.baz);
+    }
+  }
+});
+
+suite.addBatch({
+  "querying twice, each at 3/5 duration time": {
     topic: function() {
       var self = this;
 
@@ -863,6 +900,40 @@ suite.addBatch({
       assert.notEqual(req.session.foo, 'buzz');
       assert.notEqual(req.session.widget, 4);
       assert.notEqual(req.securestore.foo, 'bar');
+    }
+  }
+});
+
+suite.addBatch({
+  "missing cookie maxAge": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 50000,
+        secret: 'yo'
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "still has an expires attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
+    },
+    "which roughly matches the session duration": function(err, res) {
+      var expiryValue = res.headers['set-cookie'][0].replace(/^.*expires=([^;]+);.*$/, "$1");
+      var expiryDate = new Date(expiryValue);
+      var cookieDuration = expiryDate.getTime() - Date.now();
+      assert(50000 - cookieDuration < 1500, "expiry is pretty far from the specified duration");
     }
   }
 });
