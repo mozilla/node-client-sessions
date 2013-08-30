@@ -416,7 +416,7 @@ suite.addBatch({
 });
 
 suite.addBatch({
-  "querying twice, each at 1/4 duration time": {
+  "querying twice, each at 2/5 duration time": {
     topic: function() {
       var self = this;
 
@@ -453,7 +453,7 @@ suite.addBatch({
 });
 
 suite.addBatch({
-  "querying twice, each at 3/4 duration time": {
+  "querying twice, each at 3/5 duration time": {
     topic: function() {
       var self = this;
 
