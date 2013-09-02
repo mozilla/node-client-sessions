@@ -975,6 +975,9 @@ suite.addBatch({
   }
 });
 
+var shared_browser1;
+var shared_browser2;
+
 suite.addBatch({
   "non-ephemeral cookie": {
     topic: function() {
@@ -986,8 +989,7 @@ suite.addBatch({
         duration: 5000,
         secret: 'yo',
         cookie: {
-          ephemeral: false,
-          maxAge: 400
+          ephemeral: false
         }
       }));
 
@@ -996,13 +998,29 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
-      browser.get("/foo", function(res, $) {
+      app.get("/bar", function(req, res) {
+        req.session.setDuration(6000, true);
+        res.send("hello");
+      });
+
+      shared_browser1 = tobi.createBrowser(app);
+      shared_browser1.get("/foo", function(res, $) {
         self.callback(null, res);
       });
     },
     "has an expires attribute": function(err, res) {
       assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
+    },
+    "changing to an ephemeral one": {
+      topic: function() {
+        var self = this;
+        shared_browser1.get("/bar", function(res, $) {
+          self.callback(null, res);
+        });
+      },
+      "removes its expires attribute": function(err, res) {
+        assert.strictEqual(res.headers['set-cookie'][0].indexOf('expires='), -1, "cookie is not ephemeral");
+      }
     }
   },
   "ephemeral cookie": {
@@ -1024,13 +1042,29 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
-      browser.get("/foo", function(res, $) {
+      app.get("/bar", function(req, res) {
+        req.session.setDuration(6000, false);
+        res.send("hello");
+      });
+
+      shared_browser2 = tobi.createBrowser(app);
+      shared_browser2.get("/foo", function(res, $) {
         self.callback(null, res);
       });
     },
     "doesn't have an expires attribute": function(err, res) {
       assert.strictEqual(res.headers['set-cookie'][0].indexOf('expires='), -1, "cookie is not ephemeral");
+    },
+    "changing to an non-ephemeral one": {
+      topic: function() {
+        var self = this;
+        shared_browser2.get("/bar", function(res, $) {
+          self.callback(null, res);
+        });
+      },
+      "gains an expires attribute": function(err, res) {
+        assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
+      }
     }
   }
 });
