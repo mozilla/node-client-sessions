@@ -975,4 +975,64 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "non-ephemeral cookie": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 5000,
+        secret: 'yo',
+        cookie: {
+          ephemeral: false,
+          maxAge: 400
+        }
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "has an expires attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
+    }
+  },
+  "ephemeral cookie": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 50000,
+        secret: 'yo',
+        cookie: {
+          ephemeral: true
+        }
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "doesn't have an expires attribute": function(err, res) {
+      assert.strictEqual(res.headers['set-cookie'][0].indexOf('expires='), -1, "cookie is not ephemeral");
+    }
+  }
+});
+
 suite.export(module);
