@@ -933,7 +933,44 @@ suite.addBatch({
       var expiryValue = res.headers['set-cookie'][0].replace(/^.*expires=([^;]+);.*$/, "$1");
       var expiryDate = new Date(expiryValue);
       var cookieDuration = expiryDate.getTime() - Date.now();
-      assert(50000 - cookieDuration < 1500, "expiry is pretty far from the specified duration");
+      assert(Math.abs(50000 - cookieDuration) < 1500, "expiry is pretty far from the specified duration");
+    }
+  },
+  "changing the duration": {
+    topic: function() {
+      var self = this;
+
+      var app = express.createServer();
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 500,
+        secret: 'yo'
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      app.get("/bar", function(req, res) {
+        req.session.setDuration(5000);
+        res.send("bar");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        setTimeout(function () {
+          browser.get("/bar", function(res, $) {
+            self.callback(null, res);
+          });
+        }, 200);
+      });
+    },
+    "updates the cookie expiry": function(err, res) {
+      var expiryValue = res.headers['set-cookie'][0].replace(/^.*expires=([^;]+);.*$/, "$1");
+      var expiryDate = new Date(expiryValue);
+      var cookieDuration = expiryDate.getTime() - Date.now();
+      assert(Math.abs(cookieDuration - 5000) < 1000, "expiry is pretty far from the specified duration");
     }
   }
 });
