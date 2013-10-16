@@ -43,7 +43,7 @@ You can control more specific cookie behavior during setup:
       }
     }));
 
-Finally, you can have multiple cookies:
+You can have multiple cookies:
 
     // a 1 week session
     app.use(sessions({
@@ -60,6 +60,26 @@ Finally, you can have multiple cookies:
     }));
 
 In this example, there's a 2 hour authentication session, but shopping carts persist for a week.
+
+Finally, you can use requestKey to force the name where information can be accessed on the request object.
+
+    var sessions = require("client-sessions");
+    app.use(sessions({
+      cookieName: 'mySession',
+      requestKey: 'forcedSessionKey', // requestKey overrides cookieName for the key name added to the request object.
+      secret: 'blargadeeblargblarg', // should be a large unguessable string
+      duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+    }));
+
+    app.use(function(req, res, next) {
+      // requestKey forces the session information to be
+      // accessed via forcedSessionKey
+      if (req.forcedSessionKey.seenyou) {
+        res.setHeader('X-Seen-You', 'true');
+      }
+      next();
+    });
+
 
 ## License
 
