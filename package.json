@@ -13,7 +13,7 @@
     "node-proxy": "0.6.0"
   },
   "devDependencies": {
-    "vows": "0.5.13",
+    "vows": "0.7.0",
     "express": "2.5.0",
     "tobi": "https://github.com/Cowboy-coder/tobi/tarball/fd733a3",
     "zombie": "1.4.1"

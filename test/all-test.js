@@ -16,6 +16,7 @@ function create_app() {
   var middleware = cookieSessions({
     cookieName: 'session',
     secret: 'yo',
+    activeDuration: 0,
     cookie: {
       maxAge: 5000
     }
@@ -28,6 +29,7 @@ function create_app() {
   var secureStoreMiddleware = cookieSessions({
     cookieName: 'securestore',
     secret: 'yo',
+    activeDuration: 0,
     cookie: {
       maxAge: 5000
     }
@@ -329,6 +331,7 @@ function create_app_with_duration() {
   app.use(cookieSessions({
     cookieName: 'session',
     secret: 'yo',
+    activeDuration: 0,
     duration: 500 // 0.5 seconds
   }));
 
@@ -496,6 +499,7 @@ function create_app_with_duration_modification() {
   app.use(cookieSessions({
     cookieName: 'session',
     secret: 'yobaby',
+    activeDuration: 0,
     duration: 5000 // 5.0 seconds
   }));
 
@@ -679,6 +683,7 @@ function create_app_with_secure(firstMiddleware) {
   var middleware = cookieSessions({
     cookieName: 'session',
     secret: 'yo',
+    activeDuration: 0,
     cookie: {
       maxAge: 5000,
       secure: true
@@ -834,12 +839,13 @@ suite.addBatch({
       var app = express.createServer();
       app.use(cookieSessions({
         cookieName: 'ooga_booga_momma',
+        activeDuration: 0,
         requestKey: 'ses',
         secret: 'yo'
       }));
 
       app.get('/foo', function(req, res) {
-        self.callback(null, req)
+        self.callback(null, req);
       });
 
       var browser = tobi.createBrowser(app);
@@ -913,6 +919,7 @@ suite.addBatch({
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 50000,
+        activeDuration: 0,
         secret: 'yo'
       }));
 
@@ -944,6 +951,7 @@ suite.addBatch({
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 500,
+        activeDuration: 0,
         secret: 'yo'
       }));
 
@@ -971,6 +979,52 @@ suite.addBatch({
       var expiryDate = new Date(expiryValue);
       var cookieDuration = expiryDate.getTime() - Date.now();
       assert(Math.abs(cookieDuration - 5000) < 1000, "expiry is pretty far from the specified duration");
+    }
+  },
+  "active user with session close to expiration": {
+    topic: function() {
+      var app = express.createServer();
+      var self = this;
+      app.use(cookieSessions({
+        cookieName: 'session',
+        duration: 300,
+        activeDuration: 500,
+        secret: 'yo'
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      app.get("/bar", function(req, res) {
+        req.session.bar = 'baz';
+        res.send('hi');
+      });
+
+      app.get("/baz", function(req, res) {
+        res.json({ "msg": req.session.foo + req.session.bar });
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function() {
+        browser.get("/bar", function() {
+          setTimeout(function () {
+            browser.get("/baz", function(res, first) {
+              setTimeout(function() {
+                browser.get('/baz', function(res, second) {
+                  self.callback(null, first, second);
+                });
+              }, 1000);
+            });
+          }, 400);
+        });
+      });
+
+    },
+    "extends session duration": function(err, extended, tooLate) {
+      assert.equal(extended.msg, 'foobarbaz');
+      assert.equal(tooLate.msg, null);
     }
   }
 });
@@ -1031,6 +1085,7 @@ suite.addBatch({
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 50000,
+        activeDuration: 0,
         secret: 'yo',
         cookie: {
           ephemeral: true
