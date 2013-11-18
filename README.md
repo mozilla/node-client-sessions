@@ -10,77 +10,84 @@ client-sessions is connect middleware that implements sessions in encrypted tamp
 
 Basic usage:
 
-    var sessions = require("client-sessions");
-    app.use(sessions({
-      cookieName: 'mySession', // cookie name dictates the key name added to the request object
-      secret: 'blargadeeblargblarg', // should be a large unguessable string
-      duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
-      activeDuration: 1000 * 60 * 5 // if expiresIn < activeDuration, the session will be extended by activeDuration milliseconds
-    }));
+```js
+var sessions = require("client-sessions");
+app.use(sessions({
+  cookieName: 'mySession', // cookie name dictates the key name added to the request object
+  secret: 'blargadeeblargblarg', // should be a large unguessable string
+  duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+  activeDuration: 1000 * 60 * 5 // if expiresIn < activeDuration, the session will be extended by activeDuration milliseconds
+}));
 
-    app.use(function(req, res, next) {
-      if (req.mySession.seenyou) {
-        res.setHeader('X-Seen-You', 'true');
-      } else {
-        // setting a property will automatically cause a Set-Cookie response
-        // to be sent
-        req.mySession.seenyou = true;
-        res.setHeader('X-Seen-You', 'false');
-      }
-    });
+app.use(function(req, res, next) {
+  if (req.mySession.seenyou) {
+    res.setHeader('X-Seen-You', 'true');
+  } else {
+    // setting a property will automatically cause a Set-Cookie response
+    // to be sent
+    req.mySession.seenyou = true;
+    res.setHeader('X-Seen-You', 'false');
+  }
+});
+```
 
 You can control more specific cookie behavior during setup:
 
-    app.use(sessions({
-      cookieName: 'mySession', // cookie name dictates the key name added to the request object
-      secret: 'blargadeeblargblarg', // should be a large unguessable string
-      duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
-      cookie: {
-        path: '/api', // cookie will only be sent to requests under '/api'
-        maxAge: 60000, // duration of the cookie in milliseconds, defaults to duration above
-        ephemeral: false, // when true, cookie expires when the browser closes
-        httpOnly: true, // when true, cookie is not accessible from javascript
-        secure: false   // when true, cookie will only be sent over SSL
-      }
-    }));
+```js
+app.use(sessions({
+  cookieName: 'mySession', // cookie name dictates the key name added to the request object
+  secret: 'blargadeeblargblarg', // should be a large unguessable string
+  duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+  cookie: {
+    path: '/api', // cookie will only be sent to requests under '/api'
+    maxAge: 60000, // duration of the cookie in milliseconds, defaults to duration above
+    ephemeral: false, // when true, cookie expires when the browser closes
+    httpOnly: true, // when true, cookie is not accessible from javascript
+    secure: false   // when true, cookie will only be sent over SSL
+  }
+}));
+```
 
 You can have multiple cookies:
 
-    // a 1 week session
-    app.use(sessions({
-      cookieName: 'shopping_cart',
-      secret: 'first secret',
-      duration: 7 * 24 * 60 * 60 * 1000
-    }));
+```js
+// a 1 week session
+app.use(sessions({
+  cookieName: 'shopping_cart',
+  secret: 'first secret',
+  duration: 7 * 24 * 60 * 60 * 1000
+}));
 
-    // a 2 hour encrypted session
-    app.use(sessions({
-      cookieName: 'authenticated',
-      secret: 'first secret',
-      duration: 2 * 60 * 60 * 1000
-    }));
+// a 2 hour encrypted session
+app.use(sessions({
+  cookieName: 'authenticated',
+  secret: 'first secret',
+  duration: 2 * 60 * 60 * 1000
+}));
+```
 
 In this example, there's a 2 hour authentication session, but shopping carts persist for a week.
 
 Finally, you can use requestKey to force the name where information can be accessed on the request object.
 
-    var sessions = require("client-sessions");
-    app.use(sessions({
-      cookieName: 'mySession',
-      requestKey: 'forcedSessionKey', // requestKey overrides cookieName for the key name added to the request object.
-      secret: 'blargadeeblargblarg', // should be a large unguessable string
-      duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
-    }));
+```js
+var sessions = require("client-sessions");
+app.use(sessions({
+  cookieName: 'mySession',
+  requestKey: 'forcedSessionKey', // requestKey overrides cookieName for the key name added to the request object.
+  secret: 'blargadeeblargblarg', // should be a large unguessable string
+  duration: 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+}));
 
-    app.use(function(req, res, next) {
-      // requestKey forces the session information to be
-      // accessed via forcedSessionKey
-      if (req.forcedSessionKey.seenyou) {
-        res.setHeader('X-Seen-You', 'true');
-      }
-      next();
-    });
-
+app.use(function(req, res, next) {
+  // requestKey forces the session information to be
+  // accessed via forcedSessionKey
+  if (req.forcedSessionKey.seenyou) {
+    res.setHeader('X-Seen-You', 'true');
+  }
+  next();
+});
+```
 
 ## License
 
