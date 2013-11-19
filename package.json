@@ -1,6 +1,6 @@
 {
   "name"         : "client-sessions",
-  "version"      : "0.4.0",
+  "version"      : "0.4.1",
   "description"  : "secure sessions stored in cookies",
   "main"         : "lib/client-sessions",
   "repository" : {
