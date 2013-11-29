@@ -43,18 +43,26 @@ function create_app() {
 var suite = vows.describe('all');
 
 suite.addBatch({
-  "a single request object" : {
+  "middleware" : {
     topic: function() {
       var self = this;
-
-      var app = create_app();
-      app.get("/foo", function(req, res) {
-        self.callback(null, req);
-        res.send("hello");
+      var middleware = cookieSessions({
+        cookieName: 'session',
+        secret: 'yo',
+        activeDuration: 0,
+        cookie: {
+          maxAge: 5000
+        }
       });
 
-      var browser = tobi.createBrowser(app);
-      browser.get("/foo", function(res, $) {});
+      var req = {
+        headers: {}
+      };
+      var res = {};
+
+      middleware(req, res, function(err) {
+        self.callback(err, req, res);
+      });
     },
     "includes a session object": function(err, req) {
       assert.isObject(req.session);
@@ -65,6 +73,9 @@ suite.addBatch({
     },
     "session object has reset function": function(err, req) {
       assert.isFunction(req.session.reset);
+    },
+    "session object has setDuration function": function(err, req) {
+      assert.isFunction(req.session.setDuration);
     },
     "set variables and clear them yields no variables": function(err, req) {
       req.session.bar = 'baz';
@@ -230,6 +241,43 @@ suite.addBatch({
     "session maintains state": function(err, req) {
       assert.equal(req.session.foo, 'foobar');
       assert.isUndefined(req.session.bar);
+    }
+  },
+  "across three requests with deep objects" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = create_app();
+
+      app.get("/foo", function(req, res) {
+        req.session.reset();
+        req.session.foo = 'foobar';
+        req.session.bar = { a: 'b' };
+        res.send("foo");
+      });
+
+      app.get("/bar", function(req, res) {
+        req.session.bar.c = 'd';
+        res.send("bar");
+      });
+
+      app.get("/baz", function(req, res) {
+        self.callback(null, req);
+        res.send("baz");
+      });
+
+      var browser = tobi.createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        browser.get("/bar", function(res, $) {
+          browser.get("/baz", function(res, $) {
+          });
+        });
+      });
+    },
+    "session maintains state": function(err, req) {
+      assert.equal(req.session.foo, 'foobar');
+      assert.equal(req.session.bar.c, 'd');
     }
   }
 });
