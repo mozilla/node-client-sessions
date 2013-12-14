@@ -97,6 +97,21 @@ suite.addBatch({
 
       assert.isUndefined(req.session.bar);
       assert.equal(req.session.foo, 'foobar');
+    },
+    "set session property absorbs set object": function(err, req) {
+      req.session.reset();
+      req.session.foo = 'quux';
+
+      req.session = { bar: 'baz' };
+
+      assert.isUndefined(req.session.foo);
+      assert.isFunction(req.session.reset);
+      assert.isFunction(req.session.setDuration);
+      assert.equal(req.session.bar, 'baz');
+
+      assert.throws(function() {
+        req.session = 'blah';
+      }, TypeError);
     }
   }
 });
