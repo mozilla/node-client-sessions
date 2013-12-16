@@ -1,4 +1,9 @@
-0.4.1-
+0.5.0 -
+	* fix dirty checking for nested objects. req.session.foo.bar = 'baz' now works.
+	* fix setting req.session = someObj will update from someObj
+	* removed usage of Proxy, now uses getters/setters
+
+0.4.1 -
 	* change to writeHead, no longer depending on connect's res.on('header') event
 	* fix checking existence of res.socket before checking res.socket.encrypted
 	* documentation added js syntax highlighting
