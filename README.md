@@ -89,6 +89,50 @@ app.use(function(req, res, next) {
 });
 ```
 
+## Advanced Cryptographic Options
+
+By default the `AES-256-CBC` cipher is used to encrypt the session contents,
+with a `HMAC-SHA-256` authentication tag (via "Encrypt-then-Mac" composition).
+A random 128-bit Initialization Vector (IV) is generated for each encryption
+operation (this is the AES block size regardless of the key size).
+
+A pair of encryption and signature keys are derived from the `secret` option
+via `HMAC-SHA256`; the `secret` isn't used directly to encrypt or compute the
+MAC.
+
+If these defaults don't suit your needs, you can customize client-sessions as
+follows (assuming you implement your own `loadFromKeyStore`):
+
+```js
+var sessions = require("client-sessions");
+app.use(sessions({
+  encryptionAlgorithm: 'aes128',
+  encryptionKey: loadFromKeyStore('session-encryption-key'),
+  signatureAlgorithm: 'sha256-drop128',
+  signatureKey: loadFromKeyStore('session-signature-key'),
+  // ... other options discussed above ...
+}));
+```
+
+Supported `encryptionAlgorithm`s (all are in CBC mode):
+- `aes128`
+- `aes192`
+- `aes256`
+
+Supported `signatureAlgorithm`s:
+- `sha256`
+- `sha256-drop128` (does HMAC-SHA-256 then discards the last 128 bits)
+- `sha384`
+- `sha384-drop192`
+- `sha512`
+- `sha512-drop256`
+
+If you specify `encryptionKey` or `signatureKey`, please ensure:
+- they are _different_ from one another
+- they have length at least equal to the number of bits in the algorithm name (e.g. 32 bytes for 256-bit)
+  - you can easily generate keys via command line: `openssl rand -base64 32`
+  - to parse these, `new Buffer(text, 'base64')`
+
 ## License
 
 > This Source Code Form is subject to the terms of the Mozilla Public
