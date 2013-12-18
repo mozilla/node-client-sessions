@@ -826,7 +826,6 @@ suite.addBatch({
       var browser = tobi.createBrowser(app);
       browser.get("/foo", function(res, $) {});
     },
-
     "encode " : function(err, req){
       var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
       var result_arr = result.split(".");
@@ -1184,6 +1183,60 @@ suite.addBatch({
         assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
       }
     }
+  }
+});
+
+var HMAC_EXPECT = {
+  // aligned so you can see the dropN effect:
+  'sha256':
+    'ib46vUCBTNOcEl9P6dRwlxZNGNQMHDMulJEc+sAcET8=',
+  'sha256-drop128':
+    'ib46vUCBTNOcEl9P6dRwlw==',
+  'sha384':
+    'JRnBFUT/W+/EjpBdWmQ/hctq1g1/IUaD6Sqyi9qGH4R2a8uv+86vZXvY72fYNTYw',
+  'sha384-drop192':
+    'JRnBFUT/W+/EjpBdWmQ/hctq1g1/IUaD',
+  'sha512':
+    'l4D3LI09OMccrCXQcXl/biDZM1t1yDHEqZbz5DXb1IxUnX956imItOBuJu/bP0Zr'+
+    'wzWl2vJxNvOBWpfdA9xl4Q==',
+  'sha512-drop256':
+    'l4D3LI09OMccrCXQcXl/biDZM1t1yDHEqZbz5DXb1Iw='
+};
+
+function testHmac(algo) {
+  var block = {};
+  block.topic = function() {
+    var sixteen = new Buffer('0123456789abcdef','binary');
+
+    var opts = {
+      signatureAlgorithm: algo,
+      signatureKey: sixteen
+    };
+    var iv = sixteen;
+    var ciphertext = new Buffer('0123456789abcdef0123','binary');
+    var duration = 876543210;
+    var createdAt = 1234567890;
+
+    return cookieSessions.util.computeHmac(
+      opts, iv, ciphertext, duration, createdAt
+    ).toString('base64');
+  };
+
+  block['equals test vector'] = function(val) {
+    assert.equal(val, HMAC_EXPECT[algo]);
+  };
+
+  return block;
+}
+
+suite.addBatch({
+  "computeHmac": {
+    "sha256": testHmac('sha256'),
+    "sha256-drop128": testHmac('sha256-drop128'),
+    "sha384": testHmac('sha384'),
+    "sha384-drop192": testHmac('sha384-drop192'),
+    "sha512": testHmac('sha512'),
+    "sha512-drop256": testHmac('sha512-drop256'),
   }
 });
 
