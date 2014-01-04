@@ -224,6 +224,7 @@ If you specify `encryptionKey` or `signatureKey`, you must supply the other as
 well.
 
 The following constraints must be met or an `Error` will be thrown:
+
 1. both keys must be `Buffer`s.
 2. the keys must be _different_.
 3. the encryption key are _exactly_ the length required (see above).
