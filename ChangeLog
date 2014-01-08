@@ -1,3 +1,11 @@
+0.6.0 -
+	* add secret can also be a Buffer
+	* add `encryptonKey` and `signatureKey` options, to be used instead of `secret`
+	* add `encryptionAlgorithm` and `signatureAlgorithm` options
+	* fix zero out buffers during encryption
+	* docs for new crypto options
+	* docs describing how crypto is used
+
 0.5.0 -
 	* fix dirty checking for nested objects. req.session.foo.bar = 'baz' now works.
 	* fix setting req.session = someObj will update from someObj
