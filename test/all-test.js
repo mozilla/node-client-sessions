@@ -826,7 +826,6 @@ suite.addBatch({
       var browser = tobi.createBrowser(app);
       browser.get("/foo", function(res, $) {});
     },
-
     "encode " : function(err, req){
       var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
       var result_arr = result.split(".");
@@ -1184,6 +1183,61 @@ suite.addBatch({
         assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
       }
     }
+  }
+});
+
+var sixtyFourByteKey = new Buffer(
+  '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+  'binary'
+);
+var HMAC_EXPECT = {
+  // aligned so you can see the dropN effect:
+  'sha256':
+    'PRYaxV/8RkMyIT/Ib+tIUOWiSn+0EvodJ5rtG1FQHz0=',
+  'sha256-drop128':
+    'PRYaxV/8RkMyIT/Ib+tIUA==',
+  'sha384':
+    'MND9nz6pxbQC5m41ZPRXhJIuqTj9/hu4gtWZ8t8LgdFLQFWQfC8jhijB0NHLpeA7',
+  'sha384-drop192':
+    'MND9nz6pxbQC5m41ZPRXhJIuqTj9/hu4',
+  'sha512':
+    'Hr4KLVLyglIwQ43C9U2bmieWBVLnD/F+lzCSF072Ds2b87MK+gbnR0p75A+I+5ez+aiemMGuMZyKVAUWfMMaUA==',
+  'sha512-drop256':
+    'Hr4KLVLyglIwQ43C9U2bmieWBVLnD/F+lzCSF072Ds0='
+};
+
+function testHmac(algo) {
+  var block = {};
+  block.topic = function() {
+    var opts = {
+      signatureAlgorithm: algo,
+      signatureKey: sixtyFourByteKey
+    };
+    var iv = new Buffer('01234567890abcdef','binary'); // 128-bits
+    var ciphertext = new Buffer('0123456789abcdef0123','binary');
+    var duration = 876543210;
+    var createdAt = 1234567890;
+
+    return cookieSessions.util.computeHmac(
+      opts, iv, ciphertext, duration, createdAt
+    ).toString('base64');
+  };
+
+  block['equals test vector'] = function(val) {
+    assert.equal(val, HMAC_EXPECT[algo]);
+  };
+
+  return block;
+}
+
+suite.addBatch({
+  "computeHmac": {
+    "sha256": testHmac('sha256'),
+    "sha256-drop128": testHmac('sha256-drop128'),
+    "sha384": testHmac('sha384'),
+    "sha384-drop192": testHmac('sha384-drop192'),
+    "sha512": testHmac('sha512'),
+    "sha512-drop256": testHmac('sha512-drop256'),
   }
 });
 
