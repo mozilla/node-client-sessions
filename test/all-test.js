@@ -863,6 +863,13 @@ suite.addBatch({
       assert.isObject(decodedReal);
       var decodedFake = cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, encodedFake);
       assert.isUndefined(decodedFake);
+    },
+    "decode - invalid input" : function(err, req){
+        var notEnoughComponents = 'LVB3G2lnPF75RzsT9mz7jQ.RT1Lcq0dOJ_DMRHyWJ4NZPjBXr2WzkFcUC4NO78gbCQ.1371704898483.5000';
+        assert.isUndefined(cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, notEnoughComponents));
+
+        var invalidBase64 = 'LVB3G2lnPF75RzsT9mz7jQ.RT1Lcq0dOJ_DMRHyWJ4NZPjBXr2WzkFcUC4NO78gb.1371704898483.5000.ILEusgnajT1sqCWLuzaUt-HFn2KPjYNd38DhI7aRCb9';
+        assert.isUndefined(cookieSessions.util.decode({cookieName: 'session', secret: 'yo'}, invalidBase64));
     }
   }
 });
