@@ -2,12 +2,13 @@
   "name"         : "client-sessions",
   "version"      : "0.6.0",
   "description"  : "secure sessions stored in cookies",
-  "main"         : "lib/client-sessions",
+  "main"         : "lib/index.js",
   "repository" : {
     "type" : "git",
     "url"  : "https://github.com/mozilla/node-client-sessions"
   },
   "dependencies" : {
+    "buf": "0.1.0",
     "cookies" : "0.3.8"
   },
   "devDependencies": {
