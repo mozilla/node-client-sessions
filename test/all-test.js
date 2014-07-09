@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'test';
 
 var vows = require("vows"),
     assert = require("assert"),
-    cookieSessions = require("../lib/client-sessions"),
+    cookieSessions = require("../"),
     express = require("express"),
     tobi = require("tobi"),
     Browser = require("zombie");
