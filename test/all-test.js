@@ -7,8 +7,13 @@ var vows = require("vows"),
     assert = require("assert"),
     cookieSessions = require("../lib/client-sessions"),
     express = require("express"),
-    tobi = require("tobi"),
-    Browser = require("zombie");
+    request = require("request");
+
+// screw you Vows
+process.on('uncaughtException', function(err) {
+  console.error('Uncaught:', err.stack);
+  process.exit(1);
+});
 
 function create_app() {
   // set up the session middleware
@@ -40,7 +45,50 @@ function create_app() {
   return app;
 }
 
-var suite = vows.describe('all');
+var startingPort = 9000;
+
+function createBrowser(server) {
+  var jar = request.jar();
+  var browser = {
+    get: function(url, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+      if (typeof callback !== 'function') {
+        throw new TypeError('callback must be a function');
+      }
+      // Ensure that server is ready to take connections
+      if (server && !server._handle) {
+        (server.__deferred = server.__deferred || []).push([url, options, callback]);
+        if (!server.__started) {
+          server.listen(server.__port = ++startingPort, '127.0.0.1', function(){
+            process.nextTick(function(){
+              server.__deferred.forEach(function(args){
+                browser.get.apply(browser, args);
+              });
+            });
+          });
+          server.__started = true;
+        }
+        return;
+      }
+      url = 'http://127.0.0.1:' + server.__port + url;
+      options.uri = url;
+      options.jar = jar;
+      request.get(options, function(err, res, body) {
+        if (err) console.error('ERR', err.stack);
+        browser.cookies = jar.getCookies(url);
+        callback(res, body);
+      });
+
+
+    }
+  };
+  return browser;
+}
+
+var suite = vows.describe('client-sessions');
 
 suite.addBatch({
   "middleware" : {
@@ -129,7 +177,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         self.callback(null, res);
       });
@@ -172,7 +220,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
         });
@@ -207,7 +255,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
         });
@@ -245,7 +293,7 @@ suite.addBatch({
         res.send("baz");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           browser.get("/baz", function(res, $) {
@@ -282,7 +330,7 @@ suite.addBatch({
         res.send("baz");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           browser.get("/baz", function(res, $) {
@@ -314,7 +362,7 @@ suite.addBatch({
         res.send(req.session.foo);
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           // observe the response to the second request
@@ -338,14 +386,14 @@ suite.addBatch({
         res.send(req.session.foo);
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         self.callback(null, res, $);
       });
     },
     "does not set a cookie": function(err, res, body) {
       assert.isUndefined(res.headers['set-cookie']);
-      assert.isUndefined(body);
+      assert.equal(body, ''); // undefined becomes an empty string
     }
   }
 });
@@ -371,7 +419,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           // observe the response to the second request
@@ -418,7 +466,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
@@ -443,7 +491,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       var firstCreatedAt, secondCreatedAt;
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
@@ -467,7 +515,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
@@ -497,7 +545,7 @@ suite.addBatch({
         res.send("bar2");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       // first query resets the session to full duration
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
@@ -534,7 +582,7 @@ suite.addBatch({
         res.send("bar2");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       // first query resets the session to full duration
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
@@ -597,7 +645,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/change", function(res, $) {
           setTimeout(function () {
@@ -626,11 +674,11 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
-        initialCookie = browser.cookieJar.cookies[0].value;
+        initialCookie = browser.cookies[0].value;
         browser.get("/change", function(res, $) {
-          updatedCookie = browser.cookieJar.cookies[0].value;
+          updatedCookie = browser.cookies[0].value;
           browser.get("/complete", function(res, $) { });
         });
       });
@@ -668,7 +716,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/set_then_duration", function(res, $) {
           browser.get("/complete", function(res, $) { });
@@ -700,7 +748,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/set_then_duration", function(res, $) {
           browser.get("/complete", function(res, $) { });
@@ -725,7 +773,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/change", function(res, $) {
           browser.get("/augment", function(res, $) {
@@ -773,7 +821,7 @@ suite.addBatch({
         res.send("foo");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         self.callback(null, res);
       });
@@ -799,7 +847,7 @@ suite.addBatch({
         res.send("foo");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         self.callback(null, res);
       });
@@ -823,7 +871,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {});
     },
     "encode " : function(err, req){
@@ -885,7 +933,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $){});
     },
     "We can write to both stores": function(err, req) {
@@ -917,7 +965,7 @@ suite.addBatch({
         self.callback(null, req);
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $){});
     },
     "session is defined as req[requestKey]": function(err, req) {
@@ -945,7 +993,7 @@ suite.addBatch({
         res.send('bye');
       });
 
-      tobi.createBrowser(app).get('/foo', function(res, $){
+      createBrowser(app).get('/foo', function(res, $){
         var cookies = res.headers['set-cookie'];
         var firstCookie = cookies[0];
         var secondCookie = cookies[1];
@@ -961,9 +1009,7 @@ suite.addBatch({
         var firstHijack = getCookieName(firstCookie) + getCookieValue(secondCookie);
         var secondHijack = getCookieName(secondCookie) + getCookieValue(firstCookie);
 
-        // new browser, because tobi overwrites the passed cookies
-        // header with its cookie jar, so we need a new jar
-        tobi.createBrowser(app).get('/bar', {
+        createBrowser(app).get('/bar', {
             headers: { 'Cookie': firstHijack + '; ' + secondHijack } 
         }, function(res, $){});
 
@@ -997,7 +1043,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         self.callback(null, res);
       });
@@ -1034,7 +1080,7 @@ suite.addBatch({
         res.send("bar");
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
@@ -1075,13 +1121,13 @@ suite.addBatch({
         res.json({ "msg": req.session.foo + req.session.bar });
       });
 
-      var browser = tobi.createBrowser(app);
+      var browser = createBrowser(app);
       browser.get("/foo", function() {
         browser.get("/bar", function() {
           setTimeout(function () {
-            browser.get("/baz", function(res, first) {
+            browser.get("/baz", {json: true}, function(res, first) {
               setTimeout(function() {
-                browser.get('/baz', function(res, second) {
+                browser.get('/baz', {json: true}, function(res, second) {
                   self.callback(null, first, second);
                 });
               }, 1000);
@@ -1126,7 +1172,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      shared_browser1 = tobi.createBrowser(app);
+      shared_browser1 = createBrowser(app);
       shared_browser1.get("/foo", function(res, $) {
         self.callback(null, res);
       });
@@ -1171,7 +1217,7 @@ suite.addBatch({
         res.send("hello");
       });
 
-      shared_browser2 = tobi.createBrowser(app);
+      shared_browser2 = createBrowser(app);
       shared_browser2.get("/foo", function(res, $) {
         self.callback(null, res);
       });
