@@ -6,6 +6,9 @@ client-sessions is connect middleware that implements sessions in encrypted tamp
 
 **NOTE:** It is not recommended using both this middleware and connect's built-in session middleware.
 
+## Installation
+`npm install client-sessions`
+
 ## Usage
 
 Basic usage:
