@@ -115,8 +115,9 @@ In pseudocode, the encryption looks like the following, with `||` denoting
 concatenation. The `createdAt` and `duration` parameters are decimal strings.
 
 ```text
+  sessionText := cookieName || '=' || sessionJson
   iv := secureRandom(16 bytes)
-  ciphertext := AES-256-CBC(encKey, iv, sessionJson)
+  ciphertext := AES-256-CBC(encKey, iv, sessionText)
   payload := iv || '.' || ciphertext || '.' || createdAt || '.' || duration
   hmac := HMAC-SHA-256(sigKey, payload)
   cookie := base64url(iv) || '.' ||
