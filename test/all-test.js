@@ -122,6 +122,9 @@ suite.addBatch({
     "session object has reset function": function(err, req) {
       assert.isFunction(req.session.reset);
     },
+    "session object has cleanup function": function(err, req) {
+      assert.isFunction(req.session.cleanup);
+    },
     "session object has setDuration function": function(err, req) {
       assert.isFunction(req.session.setDuration);
     },
@@ -342,7 +345,39 @@ suite.addBatch({
       assert.equal(req.session.foo, 'foobar');
       assert.equal(req.session.bar.c, 'd');
     }
-  }
+  },
+  "cleanup cookies" : {
+    topic: function() {
+      var self = this;
+
+      // simple app
+      var app = create_app();
+
+      app.get("/set", function(req, res) {
+        req.session.reset();
+        req.session.foo = 'foobar';
+        res.send("foo");
+      });
+
+      app.get("/cleanup", function(req, res) {
+        req.session.cleanup();
+        res.send("bar");
+      });
+
+      var browser = createBrowser(app);
+      browser.get("/set", function(res, $) {
+        browser.get("/cleanup", function(res, $) {
+          // observe the response to the second request
+          self.callback(null, res);
+        });
+      });
+    },
+    "cleanup cookies": function(err, res) {
+      assert.isArray(res.headers['set-cookie']);
+      assert.equal(res.headers['set-cookie'][0], 'session=; path=/; ' +
+        'expires=Thu, 01 Jan 1970 00:00:00 GMT; httponly');
+    }
+  },
 });
 
 suite.addBatch({
