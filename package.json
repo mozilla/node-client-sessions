@@ -25,9 +25,6 @@
   "engines": {
     "node": ">= 0.8.0"
   },
-  "licenses": {
-    "type": "MPL 2.0",
-    "url": "https://raw.github.com/mozilla/node-client-sessions/master/LICENSE"
-  },
+  "license": "MPL-2.0",
   "bugs": "https://github.com/mozilla/node-client-sessions/issues"
 }
