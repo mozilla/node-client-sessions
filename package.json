@@ -13,7 +13,7 @@
   "devDependencies": {
     "vows": "0.8.1",
     "express": "2.5.0",
-    "request": "2.42.0"
+    "request": "2.81.0"
   },
   "author" : {
     "name"  : "Ben Adida",
