@@ -1240,6 +1240,37 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "sameSite cookie": {
+    topic: function() {
+      var self = this;
+      var app = express();
+
+      app.use(cookieSessions({
+        cookieName: 'session',
+        secret: 'yo',
+        activeDuration: 0,
+        cookie: {
+          sameSite: 'lax'
+        }
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "has samesite attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /samesite=lax/, "cookie uses samesite");
+    }
+  }
+});
+
 var sixtyFourByteKey = new Buffer(
   '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   'binary'
