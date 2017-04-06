@@ -27,7 +27,7 @@ function create_app() {
     }
   });
 
-  var app = express.createServer();
+  var app = express();
   app.use(middleware);
 
   // set up a second cookie storage middleware
@@ -59,7 +59,7 @@ function createBrowser(server) {
         throw new TypeError('callback must be a function');
       }
       // Ensure that server is ready to take connections
-      if (server && !server._handle) {
+      if (server && !server.__listening) {
         (server.__deferred = server.__deferred || []).push([url, options, callback]);
         if (!server.__started) {
           server.listen(server.__port = ++startingPort, '127.0.0.1', function(){
@@ -68,6 +68,7 @@ function createBrowser(server) {
                 browser.get.apply(browser, args);
               });
             });
+            server.__listening = true;
           });
           server.__started = true;
         }
@@ -438,7 +439,7 @@ suite.addBatch({
 
 function create_app_with_duration() {
   // simple app
-  var app = express.createServer();
+  var app = express();
   app.use(cookieSessions({
     cookieName: 'session',
     secret: 'yo',
@@ -605,7 +606,7 @@ suite.addBatch({
 
 function create_app_with_duration_modification() {
   // simple app
-  var app = express.createServer();
+  var app = express();
 
   app.use(cookieSessions({
     cookieName: 'session',
@@ -801,7 +802,7 @@ function create_app_with_secure(firstMiddleware) {
     }
   });
 
-  var app = express.createServer();
+  var app = express();
   if (firstMiddleware)
     app.use(firstMiddleware);
 
@@ -953,7 +954,7 @@ suite.addBatch({
     topic: function() {
       var self = this;
 
-      var app = express.createServer();
+      var app = express();
       app.use(cookieSessions({
         cookieName: 'ooga_booga_momma',
         activeDuration: 0,
@@ -1030,7 +1031,7 @@ suite.addBatch({
     topic: function() {
       var self = this;
 
-      var app = express.createServer();
+      var app = express();
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 50000,
@@ -1062,7 +1063,7 @@ suite.addBatch({
     topic: function() {
       var self = this;
 
-      var app = express.createServer();
+      var app = express();
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 500,
@@ -1098,7 +1099,7 @@ suite.addBatch({
   },
   "active user with session close to expiration": {
     topic: function() {
-      var app = express.createServer();
+      var app = express();
       var self = this;
       app.use(cookieSessions({
         cookieName: 'session',
@@ -1152,7 +1153,7 @@ suite.addBatch({
     topic: function() {
       var self = this;
 
-      var app = express.createServer();
+      var app = express();
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 5000,
@@ -1196,7 +1197,7 @@ suite.addBatch({
     topic: function() {
       var self = this;
 
-      var app = express.createServer();
+      var app = express();
       app.use(cookieSessions({
         cookieName: 'session',
         duration: 50000,
@@ -1235,6 +1236,37 @@ suite.addBatch({
       "gains an expires attribute": function(err, res) {
         assert.match(res.headers['set-cookie'][0], /expires/, "cookie is a session cookie");
       }
+    }
+  }
+});
+
+suite.addBatch({
+  "sameSite cookie": {
+    topic: function() {
+      var self = this;
+      var app = express();
+
+      app.use(cookieSessions({
+        cookieName: 'session',
+        secret: 'yo',
+        activeDuration: 0,
+        cookie: {
+          sameSite: 'lax'
+        }
+      }));
+
+      app.get("/foo", function(req, res) {
+        req.session.foo = 'foobar';
+        res.send("hello");
+      });
+
+      var browser = createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        self.callback(null, res);
+      });
+    },
+    "has samesite attribute": function(err, res) {
+      assert.match(res.headers['set-cookie'][0], /samesite=lax/, "cookie uses samesite");
     }
   }
 });

@@ -8,12 +8,12 @@
     "url"  : "https://github.com/mozilla/node-client-sessions"
   },
   "dependencies" : {
-    "cookies" : "0.5.0"
+    "cookies" : "^0.7.0"
   },
   "devDependencies": {
-    "vows": "0.7.0",
-    "express": "2.5.0",
-    "request": "2.42.0"
+    "vows": "0.8.1",
+    "express": "4.15.2",
+    "request": "2.81.0"
   },
   "author" : {
     "name"  : "Ben Adida",
@@ -25,9 +25,6 @@
   "engines": {
     "node": ">= 0.8.0"
   },
-  "licenses": {
-    "type": "MPL 2.0",
-    "url": "https://raw.github.com/mozilla/node-client-sessions/master/LICENSE"
-  },
+  "license": "MPL-2.0",
   "bugs": "https://github.com/mozilla/node-client-sessions/issues"
 }
