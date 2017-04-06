@@ -46,7 +46,6 @@ function create_app() {
 }
 
 var startingPort = 9000;
-
 function createBrowser(server) {
   var jar = request.jar();
   var browser = {
@@ -62,7 +61,7 @@ function createBrowser(server) {
       if (server && !server.__listening) {
         (server.__deferred = server.__deferred || []).push([url, options, callback]);
         if (!server.__started) {
-          server.listen(server.__port = ++startingPort, '127.0.0.1', function(){
+          server.__listener = server.listen(server.__port = ++startingPort, '127.0.0.1', function(){
             process.nextTick(function(){
               server.__deferred.forEach(function(args){
                 browser.get.apply(browser, args);
@@ -84,6 +83,12 @@ function createBrowser(server) {
       });
 
 
+    },
+    done: function() {
+      server.__listener.close();
+      server.__listener = null;
+      server.__listening = false;
+      server.__started = false;
     }
   };
   return browser;
@@ -180,6 +185,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res);
       });
     },
@@ -224,6 +230,7 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
+          browser.done();
         });
       });
     },
@@ -259,6 +266,7 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
+          browser.done();
         });
       });
     },
@@ -298,6 +306,7 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           browser.get("/baz", function(res, $) {
+            browser.done();
           });
         });
       });
@@ -335,6 +344,7 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
           browser.get("/baz", function(res, $) {
+            browser.done();
           });
         });
       });
@@ -366,6 +376,7 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
+          browser.done();
           // observe the response to the second request
           self.callback(null, res);
         });
@@ -389,6 +400,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res, $);
       });
     },
@@ -423,6 +435,7 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
+          browser.done();
           // observe the response to the second request
           self.callback(null, res);
         });
@@ -471,6 +484,7 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
+            browser.done();
           });
         }, 200);
       });
@@ -496,6 +510,7 @@ suite.addBatch({
       var firstCreatedAt, secondCreatedAt;
       browser.get("/foo", function(res, $) {
         browser.get("/bar", function(res, $) {
+          browser.done();
         });
       });
     },
@@ -520,6 +535,7 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
+            browser.done();
           });
         }, 800);
       });
@@ -555,6 +571,7 @@ suite.addBatch({
             setTimeout(function () {
               // so the session should still be valid
               browser.get("/bar2", function(res, $) {
+                browser.done();
               });
             }, 200);
           });
@@ -592,6 +609,7 @@ suite.addBatch({
             setTimeout(function () {
               // so the session should be dead by now
               browser.get("/bar2", function(res, $) {
+                browser.done();
               });
             }, 300);
           });
@@ -650,7 +668,9 @@ suite.addBatch({
       browser.get("/create", function(res, $) {
         browser.get("/change", function(res, $) {
           setTimeout(function () {
-            browser.get("/complete", function(res, $) { });
+            browser.get("/complete", function(res, $) {
+              browser.done();
+            });
           }, 700);
         });
       });
@@ -680,7 +700,9 @@ suite.addBatch({
         initialCookie = browser.cookies[0].value;
         browser.get("/change", function(res, $) {
           updatedCookie = browser.cookies[0].value;
-          browser.get("/complete", function(res, $) { });
+          browser.get("/complete", function(res, $) {
+            browser.done();
+          });
         });
       });
     },
@@ -720,7 +742,9 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/set_then_duration", function(res, $) {
-          browser.get("/complete", function(res, $) { });
+          browser.get("/complete", function(res, $) {
+            browser.done();
+          });
         });
       });
     },
@@ -752,7 +776,9 @@ suite.addBatch({
       var browser = createBrowser(app);
       browser.get("/create", function(res, $) {
         browser.get("/set_then_duration", function(res, $) {
-          browser.get("/complete", function(res, $) { });
+          browser.get("/complete", function(res, $) {
+            browser.done();
+          });
         });
       });
     },
@@ -778,7 +804,9 @@ suite.addBatch({
       browser.get("/create", function(res, $) {
         browser.get("/change", function(res, $) {
           browser.get("/augment", function(res, $) {
-            browser.get("/complete", function(res, $) { });
+            browser.get("/complete", function(res, $) {
+              browser.done();
+            });
           });
         });
       });
@@ -824,6 +852,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res);
       });
     },
@@ -850,6 +879,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res);
       });
 
@@ -873,7 +903,9 @@ suite.addBatch({
       });
 
       var browser = createBrowser(app);
-      browser.get("/foo", function(res, $) {});
+      browser.get("/foo", function(res, $) {
+        browser.done();
+      });
     },
     "encode " : function(err, req){
       var result = cookieSessions.util.encode({cookieName: 'session', secret: 'yo'}, {foo:'bar'});
@@ -935,7 +967,9 @@ suite.addBatch({
       });
 
       var browser = createBrowser(app);
-      browser.get("/foo", function(res, $){});
+      browser.get("/foo", function(res, $){
+        browser.done();
+      });
     },
     "We can write to both stores": function(err, req) {
       req.session.foo = 'bar';
@@ -964,10 +998,13 @@ suite.addBatch({
 
       app.get('/foo', function(req, res) {
         self.callback(null, req);
+        res.send('hello');
       });
 
       var browser = createBrowser(app);
-      browser.get("/foo", function(res, $){});
+      browser.get("/foo", function(res, $){
+        browser.done();
+      });
     },
     "session is defined as req[requestKey]": function(err, req) {
       assert.isObject(req.ses);
@@ -1010,9 +1047,12 @@ suite.addBatch({
         var firstHijack = getCookieName(firstCookie) + getCookieValue(secondCookie);
         var secondHijack = getCookieName(secondCookie) + getCookieValue(firstCookie);
 
-        createBrowser(app).get('/bar', {
+        var browser = createBrowser(app);
+        browser.get('/bar', {
             headers: { 'Cookie': firstHijack + '; ' + secondHijack } 
-        }, function(res, $){});
+        }, function(res, $){
+          browser.done();
+        });
 
       });
     },
@@ -1046,6 +1086,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res);
       });
     },
@@ -1085,6 +1126,7 @@ suite.addBatch({
       browser.get("/foo", function(res, $) {
         setTimeout(function () {
           browser.get("/bar", function(res, $) {
+            browser.done();
             self.callback(null, res);
           });
         }, 200);
@@ -1129,6 +1171,7 @@ suite.addBatch({
             browser.get("/baz", {json: true}, function(res, first) {
               setTimeout(function() {
                 browser.get('/baz', {json: true}, function(res, second) {
+                  browser.done();
                   self.callback(null, first, second);
                 });
               }, 1000);
@@ -1185,6 +1228,7 @@ suite.addBatch({
       topic: function() {
         var self = this;
         shared_browser1.get("/bar", function(res, $) {
+          shared_browser1.done();
           self.callback(null, res);
         });
       },
@@ -1230,6 +1274,7 @@ suite.addBatch({
       topic: function() {
         var self = this;
         shared_browser2.get("/bar", function(res, $) {
+          shared_browser2.done();
           self.callback(null, res);
         });
       },
@@ -1262,6 +1307,7 @@ suite.addBatch({
 
       var browser = createBrowser(app);
       browser.get("/foo", function(res, $) {
+        browser.done();
         self.callback(null, res);
       });
     },
