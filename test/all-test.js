@@ -839,6 +839,27 @@ function create_app_with_secure(firstMiddleware) {
   return app;
 }
 
+function create_app_with_secure_proxy(firstMiddleware) {
+  // set up the session middleware
+  var middleware = cookieSessions({
+    cookieName: 'session',
+    secret: 'yo',
+    activeDuration: 0,
+    cookie: {
+      maxAge: 5000,
+      secureProxy: true
+    }
+  });
+
+  var app = express();
+  if (firstMiddleware)
+    app.use(firstMiddleware);
+
+  app.use(middleware);
+
+  return app;
+}
+
 suite.addBatch({
   "across two requests, without proxySecure, secure cookies" : {
     topic: function() {
@@ -858,6 +879,32 @@ suite.addBatch({
     },
     "cannot be set": function(err, res) {
       assert.equal(res.statusCode, 500);
+    }
+  }
+});
+
+suite.addBatch({
+  "across two requests, with secureProxy, secure cookies" : {
+    topic: function() {
+      var self = this;
+      var app = create_app_with_secure_proxy();
+
+      app.get("/foo", function(req, res) {
+        req.session.reset();
+        req.session.foo = 'bar'
+        res.send("foo");
+      });
+
+      var browser = createBrowser(app);
+      browser.get("/foo", function(res, $) {
+        browser.done();
+        self.callback(null, res);
+      });
+
+    },
+    "can be set": function(err, res) {
+      assert.match(res.headers['set-cookie'], /secure/)
+      assert.equal(res.statusCode, 200);
     }
   }
 });
