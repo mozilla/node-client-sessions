@@ -31,6 +31,7 @@ app.use(function(req, res, next) {
     req.mySession.seenyou = true;
     res.setHeader('X-Seen-You', 'false');
   }
+  next();
 });
 ```
 
