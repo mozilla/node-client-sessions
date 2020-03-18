@@ -1,25 +1,25 @@
 {
-  "name"         : "client-sessions",
-  "version"      : "0.8.0",
-  "description"  : "secure sessions stored in cookies",
-  "main"         : "lib/client-sessions",
-  "repository" : {
-    "type" : "git",
-    "url"  : "https://github.com/mozilla/node-client-sessions"
+  "name": "client-sessions",
+  "version": "0.8.0",
+  "description": "secure sessions stored in cookies",
+  "main": "lib/client-sessions",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mozilla/node-client-sessions"
   },
-  "dependencies" : {
-    "cookies" : "^0.7.0"
+  "dependencies": {
+    "cookies": "^0.8.0"
   },
   "devDependencies": {
-    "vows": "0.8.1",
+    "vows": "0.8.3",
     "express": "4.15.2",
     "request": "2.81.0"
   },
-  "author" : {
-    "name"  : "Ben Adida",
-    "email" : "ben@adida.net"
+  "author": {
+    "name": "Ben Adida",
+    "email": "ben@adida.net"
   },
-  "scripts" : {
+  "scripts": {
     "test": "vows --spec"
   },
   "engines": {

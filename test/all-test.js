@@ -1049,7 +1049,7 @@ suite.addBatch({
 
         var browser = createBrowser(app);
         browser.get('/bar', {
-            headers: { 'Cookie': firstHijack + '; ' + secondHijack } 
+            headers: { 'Cookie': firstHijack + '; ' + secondHijack }
         }, function(res, $){
           browser.done();
         });
@@ -1296,7 +1296,7 @@ suite.addBatch({
         secret: 'yo',
         activeDuration: 0,
         cookie: {
-          sameSite: 'lax'
+          sameSite: 'none'
         }
       }));
 
@@ -1312,7 +1312,7 @@ suite.addBatch({
       });
     },
     "has samesite attribute": function(err, res) {
-      assert.match(res.headers['set-cookie'][0], /samesite=lax/, "cookie uses samesite");
+      assert.match(res.headers['set-cookie'][0], /samesite=none/, "cookie uses samesite");
     }
   }
 });
