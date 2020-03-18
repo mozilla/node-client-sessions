@@ -46,7 +46,12 @@ app.use(sessions({
     maxAge: 60000, // duration of the cookie in milliseconds, defaults to duration above
     ephemeral: false, // when true, cookie expires when the browser closes
     httpOnly: true, // when true, cookie is not accessible from javascript
-    secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
+    secure: false, // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
+    
+    // when 'strict' or true, cookie will not be sent on any cross-origin request
+    // when 'lax', cookie will be sent on all top-level navigations using safe HTTP methods: GET, HEAD, OPTIONS and TRACE
+    // when false (the default), the Same Site attribute is not set
+    sameSite: 'strict'
   }
 }));
 ```
