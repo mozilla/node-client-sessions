@@ -1317,7 +1317,7 @@ suite.addBatch({
   }
 });
 
-var sixtyFourByteKey = new Buffer(
+var sixtyFourByteKey = Buffer.from(
   '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   'binary'
 );
@@ -1344,8 +1344,8 @@ function testHmac(algo) {
       signatureAlgorithm: algo,
       signatureKey: sixtyFourByteKey
     };
-    var iv = new Buffer('01234567890abcdef','binary'); // 128-bits
-    var ciphertext = new Buffer('0123456789abcdef0123','binary');
+    var iv = Buffer.from('01234567890abcdef','binary'); // 128-bits
+    var ciphertext = Buffer.from('0123456789abcdef0123','binary');
     var duration = 876543210;
     var createdAt = 1234567890;
 

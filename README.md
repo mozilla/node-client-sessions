@@ -218,7 +218,7 @@ output into a `Buffer`:
 ```js
 function loadKeyFromStore(name) {
   var text = myConfig.keys[name];
-  return new Buffer(text, 'base64');
+  return Buffer.from(text, 'base64');
 }
 ```
 
