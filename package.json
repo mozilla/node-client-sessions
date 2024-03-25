@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "vows": "0.8.1",
-    "express": "4.15.2",
+    "express": "4.19.2",
     "request": "2.81.0"
   },
   "author" : {
